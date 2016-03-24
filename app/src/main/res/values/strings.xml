@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">微信助手</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="start_service">启动服务</string>
+    <string name="back_to_reading">快速返回阅读\n</string>
+    <string name="switch_function_summary">开启后，当正在阅读文章时从未读通知中进入微信聊天界面，将在微信标题栏中显示继续阅读按钮，长按消失。</string>
+    <string name="help">使用说明</string>
+    <string name="instruction"> 1.进入i管家->软件管理->自启动管理，允许微信助手自启动\n2.i管家->软件管理->悬浮窗管理，允许微信助手显示悬浮窗</string>
+</resources>

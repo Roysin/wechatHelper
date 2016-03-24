@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent">
+    <SwitchPreference  android:key="switch_reading"
+        android:title="@string/back_to_reading"
+        android:defaultValue="false"
+        android:summary="@string/switch_function_summary"/>
+
+    <Preference android:key="help"
+        android:title="@string/help"
+        android:summary="@string/instruction"/>
+        <!--android:summary="@string/switch_function_summary"/>-->
+</PreferenceScreen>
