@@ -284,6 +284,8 @@ public class BackToReadingService extends Service {
                     if(mStatus != null && mStatus.lastReadingPageIntent != null){
                         int flags = mStatus.lastReadingPageIntent.getFlags();
                         flags |= Intent.FLAG_ACTIVITY_NEW_TASK;
+                        flags |= Intent.FLAG_ACTIVITY_CLEAR_TOP;
+//                        flags |= Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY;
                         mStatus.lastReadingPageIntent.setFlags(flags);
                         startActivity(mStatus.lastReadingPageIntent);
                     }
