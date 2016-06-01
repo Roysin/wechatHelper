@@ -4,4 +4,6 @@
     <dimen name="float_y">33dp</dimen>
     <dimen name="float_width">25dp</dimen>
     <dimen name="float_height">22dp</dimen>
+    <dimen name="close_btn_width">20dp</dimen>
+    <dimen name="close_btn_height">20dp</dimen>
 </resources>

@@ -8,25 +8,24 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.util.Log;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
 import org.roysin.wechathelper.Model.BehaviourRecorder;
 import org.roysin.wechathelper.Model.FloatIconController;
 import org.roysin.wechathelper.Model.IconShownCondition;
-import org.roysin.wechathelper.Model.MmCondition;
+import org.roysin.wechathelper.Model.QQ.QQCondition;
+import org.roysin.wechathelper.Model.microMsg.MmCondition;
+import org.roysin.wechathelper.Model.microMsg.MmController;
 import org.roysin.wechathelper.Utils.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -80,36 +79,43 @@ public class BackToReadingService extends Service {
 
 
         //tencent wechat(micromsg) recorder.
-        final BehaviourRecorder mmRecorder = new BehaviourRecorder(Constants.WEIXIN_PKGNAME,BackToReadingService.this);
-        final String [] mmRecordablePages = new String[]{Constants.READING_PAGE_CLASS};
+        final BehaviourRecorder mmRecorder = new BehaviourRecorder(Constants.WX_PKGNAME,BackToReadingService.this);
+
+        //recordable pages are those whose intents will be recorded.
+        //The recorded intent is used to start activity when float icon clicked.
+        final String [] mmRecordablePages = new String[]{Constants.WX_READING_PAGE_CLASS};
         mmRecorder.setRecordablePages(mmRecordablePages);
 
-
+        //float icon will be hidden on these pages.
         String [] mmHiddenPages = new String[]{
-                Constants.GALLERY_UI_CLASS,
-                Constants.SNS_TIMELINE_CLASS
+                Constants.WX_GALLERY_UI_CLASS,
+                Constants.WX_SNS_TIMELINE_CLASS
         };
         final IconShownCondition mmCondition = new MmCondition(mmRecorder);
         mmCondition.setHiddenPages(mmHiddenPages);
 
-        final FloatIconController mmIconController = new FloatIconController(BackToReadingService.this);
+        final FloatIconController mmIconController = new MmController(BackToReadingService.this);
         mmIconController.bindCondition(mmCondition);
-        mmIconController.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mmRecorder.resumeTopActivity();
-                mmIconController.remove();
-            }
-        });
-        mmIconController.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                mmIconController.remove();
-                return false;
-            }
-        });
+
+        ////////////////////////////////////////////////////QQ
+        final BehaviourRecorder qqRecorder = new BehaviourRecorder(Constants.QQ_PKGNAME,BackToReadingService.this);
+        final String [] qqRecordablePages = new String[]{Constants.QQ_READING_PAGE,
+                Constants.QQ_SERVICE_PAGE};
+        qqRecorder.setRecordablePages(qqRecordablePages);
+        //float icon will be hidden on these pages.
+        String [] qqHiddenPages = new String[]{Constants.QQ_LOCKSCREEN_PAGE};
+        final IconShownCondition qqCondition = new QQCondition(qqRecorder);
+        qqCondition.setHiddenPages(qqHiddenPages);
+
+        final FloatIconController qqIconController = new MmController(BackToReadingService.this);
+        qqIconController.bindCondition(qqCondition);
+
+
+
+
         // add your recorders here.
         mRecorders.add(mmRecorder);
+        mRecorders.add(qqRecorder);
     }
 
     @Override

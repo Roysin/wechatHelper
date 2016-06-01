@@ -1,28 +1,26 @@
 package org.roysin.wechathelper.Model;
 import android.content.Context;
-import android.graphics.PixelFormat;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.widget.Button;
+
 import org.roysin.wechathelper.R;
 
 /**
  * Created by Administrator on 2016/5/30.
  */
-public class FloatIconController implements IconShownCondition.Callback {
+public abstract class FloatIconController implements IconShownCondition.Callback {
     private static final String TAG = "FloatIconController";
-    private final Context mCtx;
+    protected final Context mCtx;
     private WindowManager mWm;
     private boolean mIsShowing;
-    private View mFloatBtn;
-    private View.OnClickListener mOnClickListener;
-    private View.OnLongClickListener mOnLongClickListener;
+    protected ViewGroup mFloatView;
     private WindowManager.LayoutParams mFloatParams;
-    private AlphaAnimation mShowingAni;
-    private Runnable showingRunnable;
+    private Animation mShowingAni;
+    private IconShownCondition mBindedConditon;
 
     public FloatIconController(Context ctx){
         if(ctx == null){
@@ -39,56 +37,41 @@ public class FloatIconController implements IconShownCondition.Callback {
         return mIsShowing;
     }
 
-    private void showFloatBtn(long delay) {
+    protected IconShownCondition getBindedCondition(){
+        return mBindedConditon;
+    }
+    private void showFloatView(long delay) {
 
-        Log.i(TAG,"showFloatBtn ");
-
-        if(mFloatBtn == null){
-            LayoutInflater inflater =  LayoutInflater.from(mCtx);
-            mFloatBtn = inflater.inflate(R.layout.float_button_layout,null);
-
-            mFloatBtn.findViewById(R.id.start_activity).setOnClickListener(mOnClickListener);
-            mFloatBtn.findViewById(R.id.start_activity).setOnLongClickListener(mOnLongClickListener);
-        }
-
-        if(mFloatParams == null){
-            mFloatParams = new WindowManager.LayoutParams();
-            mFloatParams.gravity = Gravity.TOP | Gravity.LEFT;
-            mFloatParams.height = mCtx.getResources().getDimensionPixelSize(R.dimen.float_height);
-            mFloatParams.width = mCtx.getResources().getDimensionPixelSize(R.dimen.float_height);
-            mFloatParams.x = mCtx.getResources().getDimensionPixelSize(R.dimen.float_x);
-            mFloatParams.y = mCtx.getResources().getDimensionPixelSize(R.dimen.float_y);
-            mFloatParams.type = WindowManager.LayoutParams.TYPE_PRIORITY_PHONE;
-            mFloatParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                    | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                    | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-            ;
-            mFloatParams.format = PixelFormat.TRANSPARENT;
-        }
+        Log.i(TAG,"showFloatView ");
+        mFloatView = getView(mFloatView);
+        mFloatParams = getFloatParams();
         if(mShowingAni == null){
-            mShowingAni = new AlphaAnimation(0.0f,1.0f);
-            mShowingAni.setFillAfter(true);
-            mShowingAni.setDuration(300);
+            mShowingAni = getShowingAnimation();
         }else {
             mShowingAni.cancel();
         }
         if(mWm != null && !mIsShowing) {
-            Log.i(TAG, "now we are going to showFloatBtn ");
-            mWm.addView(mFloatBtn, mFloatParams);
+            Log.i(TAG, "now we are going to showFloatView ");
+            mWm.addView(mFloatView, mFloatParams);
             mShowingAni.setStartOffset(delay);
-            mFloatBtn.findViewById(R.id.start_activity).startAnimation(mShowingAni);
+            mFloatView.findViewById(R.id.float_view_layout).startAnimation(mShowingAni);
             mIsShowing = true;
         }
     }
 
+    protected abstract ViewGroup getView(ViewGroup convertView);
+    protected abstract WindowManager.LayoutParams getFloatParams();
+    protected abstract Animation getShowingAnimation();
+
+
     public  void remove(){
-        removeFloatBtn();
+        removeFloatView();
     }
 
-    private void removeFloatBtn() {
-        Log.i(TAG,"removeFloatBtn ");
-        if(mWm != null && mFloatBtn != null && mIsShowing){
-            mWm.removeViewImmediate(mFloatBtn);
+    private void removeFloatView() {
+        Log.i(TAG,"removeFloatView ");
+        if(mWm != null && mFloatView != null && mIsShowing){
+            mWm.removeViewImmediate(mFloatView);
             mIsShowing = false;
         }
     }
@@ -113,23 +96,11 @@ public class FloatIconController implements IconShownCondition.Callback {
     }
 
     private void showWithDelay(long delay) {
-        showFloatBtn(delay);
-    }
-
-    public void setOnClickListener(View.OnClickListener listener){
-        mOnClickListener = listener;
-        if(mFloatBtn != null){
-            mFloatBtn.findViewById(R.id.start_activity).setOnClickListener(mOnClickListener);
-        }
-    }
-    public void setOnLongClickListener(View.OnLongClickListener listener){
-        mOnLongClickListener = listener;
-        if(mFloatBtn != null){
-            mFloatBtn.findViewById(R.id.start_activity).setOnLongClickListener(mOnLongClickListener);
-        }
+        showFloatView(delay);
     }
 
     public void bindCondition(IconShownCondition conditon) {
-        conditon.registerCallback(this);
+        mBindedConditon = conditon;
+        mBindedConditon.registerCallback(this);
     }
 }

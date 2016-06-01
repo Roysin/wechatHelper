@@ -6,4 +6,6 @@
     <dimen name="float_y">36dp</dimen>
     <dimen name="float_width">25dp</dimen>
     <dimen name="float_height">22dp</dimen>
+    <dimen name="close_btn_width">30dp</dimen>
+    <dimen name="close_btn_height">30dp</dimen>
 </resources>

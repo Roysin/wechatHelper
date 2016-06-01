@@ -1,8 +1,9 @@
-package org.roysin.wechathelper.Model;
+package org.roysin.wechathelper.Model.microMsg;
 
 import android.content.Intent;
-import android.os.Bundle;
 
+import org.roysin.wechathelper.Model.BehaviourRecorder;
+import org.roysin.wechathelper.Model.IconShownCondition;
 import org.roysin.wechathelper.Utils.LogUtil;
 
 /**

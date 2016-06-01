@@ -28,6 +28,7 @@ public abstract class IconShownCondition implements BehaviourRecorder.BehaviourC
     private int status;
     ArrayList<Callback> mCallbacks;
 
+
     public interface Callback{
         void onConditionDismatched(int reasonLeavePackage, int lastStatus, int currentStatus);
         void onConditionFitted(int reason,int lastStatus);
@@ -41,6 +42,11 @@ public abstract class IconShownCondition implements BehaviourRecorder.BehaviourC
         status = STATUS_REMOVED;
     }
 
+
+
+    public void resetStatus() {
+        status = STATUS_REMOVED;
+    }
     public void setHiddenPages(String [] hiddenPages){
         if(hiddenPages == null){
             throw new IllegalArgumentException("hidden pages cannot be null");
@@ -172,6 +178,9 @@ public abstract class IconShownCondition implements BehaviourRecorder.BehaviourC
      */
     protected abstract boolean onDecideToShow(Intent intent);
 
+    public BehaviourRecorder getRecorder(){
+        return mRecorder;
+    }
 
     @Override
     public void onEnteringPackage() {

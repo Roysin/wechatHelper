@@ -4,10 +4,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Stack;
 
 /**
  * Created by Administrator on 2016/5/30.
@@ -17,18 +15,16 @@ public class BehaviourRecorder {
     protected String mPkgName;
     protected String mCurrentPage;
     protected String mLastPage;
-    protected Stack<Intent> mIntents;
+    protected Intent mPendingIntent;
     private BehaviourChangedListener mBehaviourChangedListener;
     private List<String> mRecordablePages;
     private boolean mEnable;
-
     public BehaviourRecorder(String packageName,Context ctx){
         if(packageName == null){
             throw new IllegalArgumentException("packageName cannot be null");
         }
         this.mContext = ctx;
         this.mPkgName = packageName;
-        this.mIntents = new Stack<>();
     }
 
     public void recordBehaviour(Intent intent){
@@ -53,8 +49,9 @@ public class BehaviourRecorder {
         }
     }
     protected void innerRecord(Intent intent,String lastPage,String newPage) {
-        if (intent != null && newPage != null && mRecordablePages.contains(newPage)) {
-            this.mIntents.push(intent);
+        if (intent != null && newPage != null)
+            if(mRecordablePages.contains(newPage)) {
+            this.mPendingIntent = intent;
         }
         if (this.mBehaviourChangedListener != null) {
             mBehaviourChangedListener.onPageChanged(intent,lastPage, newPage);
@@ -102,13 +99,19 @@ public class BehaviourRecorder {
     }
 
     public void resumeTopActivity() {
-        Intent intent = mIntents.pop();
+        Intent intent = mPendingIntent;
         if(intent != null){
             int flag = intent.getFlags();
             flag |= Intent.FLAG_ACTIVITY_NEW_TASK;
             intent.setFlags(flag);
             mContext.startActivity(intent);
         }
+    }
+
+    public void resetStatus() {
+        this.mCurrentPage = null;
+        this.mLastPage = null;
+        this.mPendingIntent = null;
     }
 
     public interface BehaviourChangedListener{
