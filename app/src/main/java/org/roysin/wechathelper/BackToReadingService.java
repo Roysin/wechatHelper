@@ -8,23 +8,23 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
-import android.service.notification.NotificationListenerService;
-import android.service.notification.StatusBarNotification;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
 import android.widget.Toast;
 
+import org.roysin.wechathelper.Model.BehaviourRecorder;
+import org.roysin.wechathelper.Model.FloatIconController;
+import org.roysin.wechathelper.Model.IconShownCondition;
+import org.roysin.wechathelper.Model.MmCondition;
+import org.roysin.wechathelper.Utils.Constants;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -35,26 +35,15 @@ import java.util.Set;
 public class BackToReadingService extends Service {
 
     private static final String TAG = "BackToReadingService";
-    private static final int MSG_SHOW_FLOAT_BTN = 0x01;
-    private static final int MSG_REMOVE_FLOAT_BTN = 0x02;
-    private static final int MSG_ACTIVITY_RESUMING = 0x03;
+    private static final int MSG_ACTIVITY_RESUMING = 0x02;
     private static final long DELAY_GET_TASKS = 600;
 
 
     private IActivityManager mAm;
     private IActivityController mMonitor;
     private WindowManager mWm;
-
-
-    private PageStatus mStatus;
-    private boolean mShowing = false;
+    private List<BehaviourRecorder> mRecorders = new ArrayList<>();
     private Handler mHandler;
-    private NotificationListenerService ntfListener;
-
-
-    private View mFloatBtn;
-    private WindowManager.LayoutParams mFloatParams;
-    private Animation mShowingAni = null;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -67,13 +56,20 @@ public class BackToReadingService extends Service {
     public void onCreate() {
         super.onCreate();
         Log.i(TAG, "onCreate");
+        if(mHandler == null) mHandler = new Handler(BackToReadingService.this.getMainLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                switch (msg.what) {
+                    case MSG_ACTIVITY_RESUMING:
+                        handleActvityResuming();
+                }
+            }
+        };
 
         if(mMonitor == null){
             mMonitor = new IntentMonitor();
         }
-
-        mWm = (WindowManager) getSystemService(WINDOW_SERVICE);
-
         try{
             mAm = ActivityManagerNative.getDefault();
             mAm.setActivityController(mMonitor);
@@ -81,79 +77,39 @@ public class BackToReadingService extends Service {
             Log.d(TAG,e.toString());
             mAm = null;
         }
-        ntfListener = new NotificationListenerService() {
-            @Override
-            public void onNotificationPosted(StatusBarNotification sbn) {
-                super.onNotificationPosted(sbn);
-                if(Constants.WEIXIN_PKGNAME.equals(sbn.getPackageName())){
 
-                }
-            }
 
-            @Override
-            public void onNotificationRemoved(StatusBarNotification sbn) {
-                super.onNotificationRemoved(sbn);
-            }
+        //tencent wechat(micromsg) recorder.
+        final BehaviourRecorder mmRecorder = new BehaviourRecorder(Constants.WEIXIN_PKGNAME,BackToReadingService.this);
+        final String [] mmRecordablePages = new String[]{Constants.READING_PAGE_CLASS};
+        mmRecorder.setRecordablePages(mmRecordablePages);
+
+
+        String [] mmHiddenPages = new String[]{
+                Constants.GALLERY_UI_CLASS,
+                Constants.SNS_TIMELINE_CLASS
         };
+        final IconShownCondition mmCondition = new MmCondition(mmRecorder);
+        mmCondition.setHiddenPages(mmHiddenPages);
 
-
-        mStatus = new PageStatus();
-        if(mHandler == null) mHandler = new Handler(BackToReadingService.this.getMainLooper()) {
-
+        final FloatIconController mmIconController = new FloatIconController(BackToReadingService.this);
+        mmIconController.bindCondition(mmCondition);
+        mmIconController.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                switch (msg.what) {
-                    case MSG_SHOW_FLOAT_BTN:
-                        showFloatBtn();
-                        break;
-                    case MSG_REMOVE_FLOAT_BTN:
-                        mHandler.removeMessages(MSG_SHOW_FLOAT_BTN);
-                        removeFloatBtn();
-                        break;
-                    case MSG_ACTIVITY_RESUMING:
-                        handleActvityResuming();
-                }
+            public void onClick(View v) {
+                mmRecorder.resumeTopActivity();
+                mmIconController.remove();
             }
-        };
-
-
-    }
-
-    private void handleActvityResuming() {
-        List<ActivityManager.RunningTaskInfo> taskInfo = null;
-        ComponentName component = null;
-        try{
-            component = mAm.getTasks(1,0).get(0).topActivity;
-        }catch (RemoteException e){
-            Log.d(TAG,e.toString());
-        }
-        Log.d(TAG, "real topActivity is " +component.getClassName());
-        if(component == null || (!"com.tencent.mm".equals(component.getPackageName()))){
-            if(mShowing) {
-                mStatus.disapperReason = PageStatus.REASON_SWITCH_APP;
-                mHandler.sendEmptyMessage(MSG_REMOVE_FLOAT_BTN);
+        });
+        mmIconController.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mmIconController.remove();
+                return false;
             }
-            return;
-        }
-        mStatus.update(component,false);
-
-        Log.i(TAG, "status : currentPage: " + mStatus.currentPage
-                + " lastPage: " + mStatus.lastPage
-                + " lastIntent: " + mStatus.lastReadingPageIntent
-                + " firstStart: " + mStatus.firstStart);
-
-        if(mStatus.currentPage == PageStatus.READING_PAGE){
-            if(mShowing){
-                mStatus.disapperReason = PageStatus.REASON_READING;
-            }
-            mHandler.sendEmptyMessage(MSG_REMOVE_FLOAT_BTN);
-        }else if((mStatus.disapperReason == PageStatus.REASON_SWITCH_APP
-                || mStatus.disapperReason == PageStatus.REASON_GALLERY)
-                && mStatus.lastReadingPageIntent != null){
-            mHandler.sendEmptyMessage(MSG_SHOW_FLOAT_BTN);
-        }
-
+        });
+        // add your recorders here.
+        mRecorders.add(mmRecorder);
     }
 
     @Override
@@ -165,68 +121,60 @@ public class BackToReadingService extends Service {
     @Override
     public void onDestroy() {
         Log.i(TAG, "onDestroy");
+        try{
+            mAm.setActivityController(null);
+        }catch (RemoteException e){
+            Log.d(TAG,e.toString());
+            mAm = null;
+        }
         super.onDestroy();
     }
 
+    protected class StartTask implements Runnable {
+        private String mPkg;
+        private Intent mIntent;
+        public void setParams(Intent intent, String pkg){
+            mPkg = pkg;
+            mIntent = intent;
+        }
+        @Override
+        public void run() {
+            for (BehaviourRecorder r : mRecorders) {
+                if (mPkg != null && mPkg.equals(r.getPackageName())) {
+                    if (!r.isEnabled()) {
+                        r.enable();
+                    } else {
+                        r.recordBehaviour(mIntent);
+                    }
+                } else {
+                    r.disable();
+                }
+
+            }
+        }
+    }
+
     protected class IntentMonitor extends IActivityController.Stub {
-
-
+        StartTask startingTask = null;
         public void IntentMonitor() {
             Log.i(TAG, "IntentMonitor created");
         }
-
-        @Override
-        public boolean activityStarting(Intent intent, String pkg) {
+        public boolean activityStarting(final Intent intent, final String pkg) {
             Log.i(TAG, "activityStarting with intent " + intent);
-            if(intent != null && ("com.tencent.mm".equals(pkg))){
-//                printLog(intent);
-                mStatus.update(intent, true);
-                Log.i(TAG, "status : currentPage: " + mStatus.currentPage
-                        + " lastPage: " + mStatus.lastPage
-                        + " lastIntent: " + mStatus.lastReadingPageIntent
-                        + " firstStart: " + mStatus.firstStart);
-
-                if (mStatus.currentPage == PageStatus.CHATTING_PAGE
-                        && mStatus.lastPage == PageStatus.READING_PAGE
-                        && mStatus.lastReadingPageIntent != null) {
-                    if ("new_msg_nofification".equals(intent.getStringExtra("nofification_type"))) {
-                        mHandler.sendEmptyMessageDelayed(MSG_SHOW_FLOAT_BTN, DELAY_GET_TASKS);
-                    }
-
-                }else if (mStatus.currentPage == PageStatus.READING_PAGE) {
-                    if(mShowing){
-                        mStatus.disapperReason = PageStatus.READING_PAGE;
-                    }
-                    mHandler.sendEmptyMessage(MSG_REMOVE_FLOAT_BTN);
-                }else if (mStatus.currentPage == PageStatus.GALLERY_PAGE){
-                    if(mShowing){
-                        mStatus.disapperReason = PageStatus.REASON_GALLERY;
-                    }
-                    mHandler.sendEmptyMessage(MSG_REMOVE_FLOAT_BTN);
-                }
-                return true;
+            if(startingTask == null ){
+                startingTask = new StartTask();
             }
-            if(mShowing){
-                mStatus.disapperReason = PageStatus.REASON_SWITCH_APP;
-            }
-            mHandler.sendEmptyMessage(MSG_REMOVE_FLOAT_BTN);
+            startingTask.setParams(intent,pkg);
+            mHandler.post(startingTask);
             return true;
         }
 
         @Override
         public boolean activityResuming(String pkg) {
             Log.i(TAG, "activityResuming pkg = " +pkg);
-            if("com.tencent.mm".equals(pkg)){
-                //we can't get resuming activity as pkg was given only. check tasks
-                //to get top Activity after some time, because tasks will not update immediately.
-                mHandler.sendEmptyMessageDelayed(MSG_ACTIVITY_RESUMING,DELAY_GET_TASKS);
-            }else {
-                if(mShowing){
-                    mStatus.disapperReason = PageStatus.REASON_SWITCH_APP;
-                }
-                mHandler.sendEmptyMessage(MSG_REMOVE_FLOAT_BTN);
-            }
-
+            //we can't get resuming activity as pkg was given only. check tasks
+            //to get top Activity after some time, because tasks will not update immediately.
+            mHandler.sendEmptyMessageDelayed(MSG_ACTIVITY_RESUMING,DELAY_GET_TASKS);
             return true;
         }
 
@@ -261,98 +209,28 @@ public class BackToReadingService extends Service {
 
     }
 
-    private void removeFloatBtn() {
-        Log.i(TAG,"removeFloatBtn ");
-        if(mWm != null && mFloatBtn != null && mShowing){
-            mWm.removeViewImmediate(mFloatBtn);
-            mShowing = false;
+
+    private void handleActvityResuming() {
+        List<ActivityManager.RunningTaskInfo> taskInfo = null;
+        ComponentName component = null;
+        try{
+            component = mAm.getTasks(1,0).get(0).topActivity;
+        }catch (RemoteException e){
+            Log.d(TAG,e.toString());
         }
-    }
+        Log.d(TAG, "real topActivity is " +component.getClassName());
 
-    private void showFloatBtn() {
-
-        Log.i(TAG,"showFloatBtn ");
-
-        if(mFloatBtn == null){
-            LayoutInflater inflater =  LayoutInflater.from(BackToReadingService.this);
-            mFloatBtn = inflater.inflate(R.layout.float_button_layout,null);
-
-            mFloatBtn.findViewById(R.id.start_activity).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Log.i(TAG, "onClick, startActivity now " );
-                    if(mStatus != null && mStatus.lastReadingPageIntent != null){
-                        int flags = mStatus.lastReadingPageIntent.getFlags();
-                        flags |= Intent.FLAG_ACTIVITY_NEW_TASK;
-                        flags |= Intent.FLAG_ACTIVITY_CLEAR_TOP;
-//                        flags |= Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY;
-                        mStatus.lastReadingPageIntent.setFlags(flags);
-                        startActivity(mStatus.lastReadingPageIntent);
-                    }
+        String pkg = component.getPackageName();
+        for(BehaviourRecorder r :mRecorders)
+            if(pkg != null && pkg.equals(r.getPackageName())){
+                if(!r.isEnabled()){
+                    r.enable();
+                }else{
+                    r.recordBehaviour(component);
                 }
-            });
-            mFloatBtn.findViewById(R.id.start_activity).setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    removeFloatBtn();
-                    if(mStatus != null){
-                        mStatus.reset();
-                    }
-                    return true;
-                }
-            });
-        }
-        if(mFloatParams == null){
-            mFloatParams = new WindowManager.LayoutParams();
-            mFloatParams.gravity = Gravity.TOP | Gravity.LEFT;
-            mFloatParams.height = getResources().getDimensionPixelSize(R.dimen.float_height);
-            mFloatParams.width = getResources().getDimensionPixelSize(R.dimen.float_height);
-            mFloatParams.x = getResources().getDimensionPixelSize(R.dimen.float_x);
-            mFloatParams.y = getResources().getDimensionPixelSize(R.dimen.float_y);
-            mFloatParams.type = WindowManager.LayoutParams.TYPE_PRIORITY_PHONE;
-            mFloatParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                    | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                    | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-            ;
-            mFloatParams.format = PixelFormat.TRANSPARENT;
-        }
-        if(mShowingAni == null){
-            mShowingAni = new AlphaAnimation(0.0f,1.0f);
-            mShowingAni.setFillAfter(true);
-            mShowingAni.setDuration(300);
-        }else {
-            mShowingAni.cancel();
-        }
-        if(mWm != null && !mShowing) {
-            Log.i(TAG, "now we are going to showFloatBtn ");
-            mWm.addView(mFloatBtn, mFloatParams);
-            mFloatBtn.findViewById(R.id.start_activity).startAnimation(mShowingAni);
-            mShowing = true;
-        }
-    }
-
-    private void printLog(Intent intent) {
-        Log.i(TAG, "========================== beigin");
-        Log.i(TAG, "intent: " +intent);
-        if(intent != null){
-            Bundle extras = intent.getExtras();
-            if(extras != null) {
-                Set<String> keyset = extras.keySet();
-                for (String key : keyset) {
-                    Log.i(TAG, "key: " + key + " value: " + extras.get(key));
-                }
+            }else {
+                r.disable();
             }
-
-            ComponentName component = intent.getComponent();
-
-            if (component != null) {
-                Log.i(TAG, "packageName: " + component.getPackageName()
-                        + " , className: " + component.getShortClassName());
-
-
-            }
-        }
-        Log.i(TAG, "========================== end");
     }
 
     public static void startSelf(Context context){

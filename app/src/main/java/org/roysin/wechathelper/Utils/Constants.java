@@ -1,4 +1,4 @@
-package org.roysin.wechathelper;
+package org.roysin.wechathelper.Utils;
 
 /**
  * Created by Administrator on 2016/3/19.
