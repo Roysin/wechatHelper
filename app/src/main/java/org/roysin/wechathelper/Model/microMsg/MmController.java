@@ -9,13 +9,12 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.widget.Button;
 
 import org.roysin.wechathelper.Model.FloatIconController;
 import org.roysin.wechathelper.R;
 
 /**
- * Created by Administrator on 2016/6/1.
+ * Created by Zangyakui on 2016/6/1.
  */
 public class MmController extends FloatIconController {
     public MmController(Context ctx) {

@@ -16,7 +16,7 @@ public class QQCondition extends IconShownCondition {
 
     @Override
     protected boolean onDecideToShow(Intent intent) {
-        LogUtil.printLog(intent);
+//        LogUtil.printLog(intent);
         boolean result = false;
         if(intent != null){
             try{

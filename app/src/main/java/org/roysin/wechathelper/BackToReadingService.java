@@ -29,7 +29,7 @@ import java.util.List;
 
 
 /**
- * Created by Administrator on 2016/3/19.
+ * Created by Zangyakui on 2016/3/19.
  */
 public class BackToReadingService extends Service {
 
@@ -40,7 +40,6 @@ public class BackToReadingService extends Service {
 
     private IActivityManager mAm;
     private IActivityController mMonitor;
-    private WindowManager mWm;
     private List<BehaviourRecorder> mRecorders = new ArrayList<>();
     private Handler mHandler;
 
@@ -97,7 +96,7 @@ public class BackToReadingService extends Service {
         final FloatIconController mmIconController = new MmController(BackToReadingService.this);
         mmIconController.bindCondition(mmCondition);
 
-        ////////////////////////////////////////////////////QQ
+        //QQ
         final BehaviourRecorder qqRecorder = new BehaviourRecorder(Constants.QQ_PKGNAME,BackToReadingService.this);
         final String [] qqRecordablePages = new String[]{Constants.QQ_READING_PAGE,
                 Constants.QQ_SERVICE_PAGE};
@@ -109,8 +108,6 @@ public class BackToReadingService extends Service {
 
         final FloatIconController qqIconController = new MmController(BackToReadingService.this);
         qqIconController.bindCondition(qqCondition);
-
-
 
 
         // add your recorders here.
@@ -178,8 +175,8 @@ public class BackToReadingService extends Service {
         @Override
         public boolean activityResuming(String pkg) {
             Log.i(TAG, "activityResuming pkg = " +pkg);
-            //we can't get resuming activity as pkg was given only. check tasks
-            //to get top Activity after some time, because tasks will not update immediately.
+            //we can't get resuming activity because only pkg was given. check tasks
+            //to get top Activity after a while, because tasks will not update immediately.
             mHandler.sendEmptyMessageDelayed(MSG_ACTIVITY_RESUMING,DELAY_GET_TASKS);
             return true;
         }

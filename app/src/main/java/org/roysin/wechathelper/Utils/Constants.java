@@ -4,7 +4,7 @@ import java.net.PortUnreachableException;
 import java.security.PublicKey;
 
 /**
- * Created by Administrator on 2016/3/19.
+ * Created by Zangyakui on 2016/3/19.
  */
 public class Constants {
     //microMsg

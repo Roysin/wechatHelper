@@ -1,9 +1,9 @@
-package org.roysin.wechathelper.Model;
+package org.roysin.wechathelper.Utils;
 
 import java.util.ArrayList;
 
 /**
- * Created by Administrator on 2016/6/1.
+ * Created by Zangyakui on 2016/6/1.
  */
 public class StackQueue <E> {
     private final long maxSize;

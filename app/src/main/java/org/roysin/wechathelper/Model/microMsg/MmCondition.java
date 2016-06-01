@@ -7,7 +7,7 @@ import org.roysin.wechathelper.Model.IconShownCondition;
 import org.roysin.wechathelper.Utils.LogUtil;
 
 /**
- * Created by Administrator on 2016/5/31.
+ * Created by Zangyakui on 2016/5/31.
  */
 public class MmCondition extends IconShownCondition {
 

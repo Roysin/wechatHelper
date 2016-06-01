@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created by Administrator on 2016/5/30.
+ * Created by Zangyakui on 2016/5/30.
  */
 public abstract class IconShownCondition implements BehaviourRecorder.BehaviourChangedListener{
     private static final String TAG = "IconShownCondition";

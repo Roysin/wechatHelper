@@ -6,7 +6,7 @@ import android.preference.PreferenceFragment;
 import android.util.Log;
 
 /**
- * Created by Administrator on 2016/3/22.
+ * Created by Zangyakui on 2016/3/22.
  */
 public class SettingsPreference extends PreferenceFragment
         implements Preference.OnPreferenceChangeListener{

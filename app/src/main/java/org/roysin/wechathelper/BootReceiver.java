@@ -8,7 +8,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 /**
- * Created by Administrator on 2016/3/22.
+ * Created by Zangyakui on 2016/3/22.
  */
 public class BootReceiver extends BroadcastReceiver {
 

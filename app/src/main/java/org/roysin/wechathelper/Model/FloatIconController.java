@@ -1,16 +1,14 @@
 package org.roysin.wechathelper.Model;
 import android.content.Context;
 import android.util.Log;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.Animation;
-import android.widget.Button;
 
 import org.roysin.wechathelper.R;
 
 /**
- * Created by Administrator on 2016/5/30.
+ * Created by Zangyakui on 2016/5/30.
  */
 public abstract class FloatIconController implements IconShownCondition.Callback {
     private static final String TAG = "FloatIconController";
@@ -20,7 +18,7 @@ public abstract class FloatIconController implements IconShownCondition.Callback
     protected ViewGroup mFloatView;
     private WindowManager.LayoutParams mFloatParams;
     private Animation mShowingAni;
-    private IconShownCondition mBindedConditon;
+    private IconShownCondition mBoundCondition;
 
     public FloatIconController(Context ctx){
         if(ctx == null){
@@ -38,7 +36,7 @@ public abstract class FloatIconController implements IconShownCondition.Callback
     }
 
     protected IconShownCondition getBindedCondition(){
-        return mBindedConditon;
+        return mBoundCondition;
     }
     private void showFloatView(long delay) {
 
@@ -99,8 +97,8 @@ public abstract class FloatIconController implements IconShownCondition.Callback
         showFloatView(delay);
     }
 
-    public void bindCondition(IconShownCondition conditon) {
-        mBindedConditon = conditon;
-        mBindedConditon.registerCallback(this);
+    public void bindCondition(IconShownCondition condition) {
+        mBoundCondition = condition;
+        mBoundCondition.registerCallback(this);
     }
 }

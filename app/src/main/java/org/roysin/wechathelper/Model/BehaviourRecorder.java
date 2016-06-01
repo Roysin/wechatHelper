@@ -8,17 +8,20 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created by Administrator on 2016/5/30.
+ * Created by Zangyakui on 2016/5/30.
  */
 public class BehaviourRecorder {
+
     private  Context mContext;
-    protected String mPkgName;
-    protected String mCurrentPage;
-    protected String mLastPage;
-    protected Intent mPendingIntent;
+    private String mPkgName;
+    private String mCurrentPage;
+    private String mLastPage;
+    private Intent mPendingIntent;
     private BehaviourChangedListener mBehaviourChangedListener;
     private List<String> mRecordablePages;
     private boolean mEnable;
+
+
     public BehaviourRecorder(String packageName,Context ctx){
         if(packageName == null){
             throw new IllegalArgumentException("packageName cannot be null");
