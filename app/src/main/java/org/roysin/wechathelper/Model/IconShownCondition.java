@@ -68,11 +68,11 @@ public abstract class IconShownCondition implements BehaviourRecorder.BehaviourC
         mCallbacks.add(callback);
     }
 
-    protected void compareCondition(Intent intent, String prevPage, String newPage){
+    protected void compareChangePageCondition(Intent intent, String prevPage, String newPage){
         int lastStatus = status;
-        status = onCompareCondition(status,intent,prevPage,newPage);
+        status = onCompareChangePageCondition(status,intent,prevPage,newPage);
         boolean fit = status == STATUS_SHOWING;
-        LogUtil.d(TAG, "compareCondition fit: " + fit);
+        LogUtil.d(TAG, "compareChangePageCondition fit: " + fit);
         if(fit){
             for(Callback cb : mCallbacks){
                 cb.onConditionFitted(REASON_PAGE_CHANGED,lastStatus);
@@ -88,11 +88,11 @@ public abstract class IconShownCondition implements BehaviourRecorder.BehaviourC
      *
      * @param enterOrLeave true means enter,otherwise leave.
      */
-    protected void compareCondition(boolean enterOrLeave){
+    protected void compareChangePackageCondition(boolean enterOrLeave){
         int lastStatus = status;
-        status = onCompareAdditionalCondition(status,enterOrLeave);
+        status = onCompareChangePackageCondition(status,enterOrLeave);
         boolean fit = status == STATUS_SHOWING;
-        LogUtil.d(TAG, "compareCondition fit: " + fit);
+        LogUtil.d(TAG, "compareChangePackageCondition fit: " + fit);
         if(mCallbacks != null){
             if(fit){
                 for (Callback cb :mCallbacks){
@@ -106,7 +106,7 @@ public abstract class IconShownCondition implements BehaviourRecorder.BehaviourC
         }
     }
 
-    protected int onCompareAdditionalCondition(int lastStatus, boolean enterOrLeave) {
+    protected int onCompareChangePackageCondition(int lastStatus, boolean enterOrLeave) {
         int result = lastStatus;
         if(enterOrLeave){ // entering the package.
             switch (lastStatus){
@@ -126,14 +126,14 @@ public abstract class IconShownCondition implements BehaviourRecorder.BehaviourC
                     break;
             }
         }
-        LogUtil.d(TAG," onCompareAdditionalCondition result: "+ result
+        LogUtil.d(TAG," onCompareChangePackageCondition result: "+ result
                 +" lastStatus: "+ lastStatus
                 + " enterOrLeave:"+ enterOrLeave);
         return result;
     }
 
 
-    protected int onCompareCondition(int lastStatus, Intent intent, String prevPage, String newPage) {
+    protected int onCompareChangePageCondition(int lastStatus, Intent intent, String prevPage, String newPage) {
 
         int result = lastStatus;
         switch (lastStatus){
@@ -163,7 +163,7 @@ public abstract class IconShownCondition implements BehaviourRecorder.BehaviourC
                 }
                 break;
         }
-        LogUtil.d(TAG," onCompareCondition result: "+ result
+        LogUtil.d(TAG," onCompareChangePageCondition result: "+ result
                 +" lastStatus: "+ lastStatus
                 + " intent:" + intent
                 +" prevPage: "+ prevPage
@@ -185,17 +185,17 @@ public abstract class IconShownCondition implements BehaviourRecorder.BehaviourC
     @Override
     public void onEnteringPackage() {
         boolean enter = true;
-        compareCondition(enter);
+        compareChangePackageCondition(enter);
     }
 
     @Override
     public void onPageChanged(Intent intent, String previousPage, String newPage) {
-        compareCondition(intent,previousPage,newPage);
+        compareChangePageCondition(intent,previousPage,newPage);
     }
 
     @Override
     public void onExitingPackage() {
         boolean enter = false;
-        compareCondition(enter);
+        compareChangePackageCondition(enter);
     }
 }

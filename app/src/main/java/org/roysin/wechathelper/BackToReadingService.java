@@ -13,7 +13,6 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.util.Log;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import org.roysin.wechathelper.Model.BehaviourRecorder;
@@ -144,13 +143,13 @@ public class BackToReadingService extends Service {
         public void run() {
             for (BehaviourRecorder r : mRecorders) {
                 if (mPkg != null && mPkg.equals(r.getPackageName())) {
-                    if (!r.isEnabled()) {
-                        r.enable();
+                    if (!r.isResumed()) {
+                        r.resume();
                     } else {
                         r.recordBehaviour(mIntent);
                     }
                 } else {
-                    r.disable();
+                    r.pause();
                 }
 
             }
@@ -226,13 +225,13 @@ public class BackToReadingService extends Service {
         String pkg = component.getPackageName();
         for(BehaviourRecorder r :mRecorders)
             if(pkg != null && pkg.equals(r.getPackageName())){
-                if(!r.isEnabled()){
-                    r.enable();
+                if(!r.isResumed()){
+                    r.resume();
                 }else{
                     r.recordBehaviour(component);
                 }
             }else {
-                r.disable();
+                r.pause();
             }
     }
 

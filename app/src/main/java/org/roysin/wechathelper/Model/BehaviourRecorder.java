@@ -19,7 +19,7 @@ public class BehaviourRecorder {
     private Intent mPendingIntent;
     private BehaviourChangedListener mBehaviourChangedListener;
     private List<String> mRecordablePages;
-    private boolean mEnable;
+    private boolean resumed;
 
 
     public BehaviourRecorder(String packageName,Context ctx){
@@ -31,14 +31,14 @@ public class BehaviourRecorder {
     }
 
     public void recordBehaviour(Intent intent){
-        if(!mEnable){
+        if(!resumed){
             return;
         }
         recordBehaviour(intent,intent.getComponent());
     }
 
     public void recordBehaviour(ComponentName component ){
-        if(!mEnable){
+        if(!resumed){
             return;
         }
         recordBehaviour(null,component);
@@ -61,22 +61,22 @@ public class BehaviourRecorder {
         }
     }
 
-    public void disable(){
-        if(!mEnable) return;
-        mEnable = false;
+    public void pause(){
+        if(!resumed) return;
+        resumed = false;
         if (this.mBehaviourChangedListener != null) {
             mBehaviourChangedListener.onExitingPackage();
         }
     }
-    public void enable(){
-        if(mEnable) return;
-        mEnable = true;
+    public void resume(){
+        if(resumed) return;
+        resumed = true;
         if (this.mBehaviourChangedListener != null) {
             mBehaviourChangedListener.onEnteringPackage();
         }
     }
-    public boolean isEnabled(){
-        return mEnable;
+    public boolean isResumed(){
+        return resumed;
     }
     public void setRecordablePages(String [] pageList){
         mRecordablePages = Arrays.asList(pageList);
