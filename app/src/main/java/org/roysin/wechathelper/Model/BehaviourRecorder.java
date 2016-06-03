@@ -52,9 +52,9 @@ public class BehaviourRecorder {
         }
     }
     protected void innerRecord(Intent intent,String lastPage,String newPage) {
-        if (intent != null && newPage != null)
-            if(mRecordablePages.contains(newPage)) {
-            this.mPendingIntent = intent;
+        if (intent != null && newPage != null
+                && mRecordablePages.contains(newPage)) {
+                this.mPendingIntent = intent;
         }
         if (this.mBehaviourChangedListener != null) {
             mBehaviourChangedListener.onPageChanged(intent,lastPage, newPage);
